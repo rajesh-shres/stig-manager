@@ -377,11 +377,37 @@ function requestedOwnerGrantsMatchExisting(requestedGrants, existingGrants) {
   const existingOwners = existingGrants.reduce(accumulateOwners, [])
   const requestedOwners = requestedGrants.reduce(accumulateOwners, [])
   
-  if ( existingOwners.length !== requestedOwners.length || !haveSameSet(existingOwners, requestedOwners)) {
+  return existingOwners.length === requestedOwners.length && haveSameSet(existingOwners, requestedOwners)
+  
+  /* if ( existingOwners.length !== requestedOwners.length || !haveSameSet(existingOwners, requestedOwners)) {
     return false
   }
-  return true
+  return true */
 }
+
+/* function requestedOwnerGrantsMatchExisting(requestedGrants, existingGrants) {
+  const existingOwners = existingGrants.reduce((acc, grant) => {
+    if (grant.accessLevel === Security.ACCESS_LEVEL.Owner) acc.push(grant.userId);
+    return acc;
+  }, []);
+
+  const requestedOwners = requestedGrants.reduce((acc, grant) => {
+    if (grant.accessLevel === Security.ACCESS_LEVEL.Owner) acc.push(grant.userId);
+    return acc;
+  }, []);
+
+  return existingOwners.length === requestedOwners.length &&
+         new Set(existingOwners).size === new Set(requestedOwners).size;
+} */
+
+/* Combine conditions: The original if condition checked for both length equality and set equality. 
+Combined these conditions using the && operator, ensuring both must be true for the function to return true.
+
+Use new Set for efficiency: The haveSameSet function originally checked for set equality using every. Replaced
+this with new Set(existingOwners).size === new Set(requestedOwners).size, which is generally more efficient for set comparison.
+
+Direct return: Instead of using an if statement, we directly return the combined condition. If both parts of the condition 
+are true, the function returns true; otherwise, it implicitly returns false. */
 
 
 function getCollectionIdAndCheckPermission(request, minimumAccessLevel = Security.ACCESS_LEVEL.Manage, allowElevate = false) {
@@ -833,7 +859,7 @@ module.exports.getUnreviewedRulesByCollection = async function (req, res, next) 
 }
 
 // for the archive streaming endpoints
-async function processAssetStigRequests (assetStigRequests, collectionId, mode = 'mono', userObject) {
+async function processAssetStigRequests (assetStigRequests, collectionId, mode, userObject) {
   const assetStigArguments = []
   let collectionName
 

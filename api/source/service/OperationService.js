@@ -338,7 +338,7 @@ exports.replaceAppData = async function (importOpts, appData, userObject, res ) 
       }
         for (const pin of c.stigs ?? []) {
           if (pin.revisionPinned == true){
-            let [input, version, release] = /V(\d+)R(\d+(\.\d+)?)/.exec(pin.revisionStr)
+            let [version, release] = dbUtils.extractVersionAndRelease(pin.revisionStr)
             dml.collectionPins.insertBinds.push([
               parseInt(c.collectionId),
               pin.benchmarkId,

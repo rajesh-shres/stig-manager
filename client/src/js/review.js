@@ -1,3 +1,5 @@
+const dbUtils = require('./utils')
+
 async function addReview( params ) {
   let { leaf, selectedRule, selectedResource, treePath, dblclick = false } = params
   const idAppend = '-' + leaf.assetId + '-' + leaf.benchmarkId.replace(".", "_");
@@ -24,11 +26,11 @@ async function addReview( params ) {
   const accessLevel = curUser.collectionGrants.filter(g => g.collection.collectionId == apiCollection.collectionId)[0].accessLevel
   const canAccept = apiStatusSettings.canAccept && accessLevel >= apiStatusSettings.minAcceptGrant
 
-
-  // Classic compatability. Remove after modernization
-  if (leaf.stigRevStr) {
-    let match = leaf.stigRevStr.match(/V(\d+)R(\d+)/)
-    leaf.revId = `${leaf.benchmarkId}-${match[1]}-${match[2]}`
+  try {
+    const [version, release] = dbUtils.dbextractVersionAndRelease(leaf.stigRevStr);
+    leaf.revId = `${leaf.benchmarkId}-${version}-${release}`;
+  } catch (error) {
+    console.error(error.message);
   }
   var unsavedChangesPrompt = 'You have modified your review. Would you like to save your changes?';
 

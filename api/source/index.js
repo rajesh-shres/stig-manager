@@ -257,7 +257,6 @@ async function startServer(app) {
 function modulePathResolver( handlersPath, route, apiDoc ) {
   const pathKey = route.openApiRoute.substring(route.basePath.length);
   const schema = apiDoc.paths[pathKey][route.method.toLowerCase()];
-  // const [controller, method] = schema['operationId'].split('.');
   const controller = schema.tags[0]
   const method = schema['operationId']
   const modulePath = path.join(handlersPath, controller);
@@ -283,7 +282,6 @@ function buildResponseValidationConfig() {
       }
   }
   else {
-    return false
+    return { onError: null };  // returns an object
   }
-
 }

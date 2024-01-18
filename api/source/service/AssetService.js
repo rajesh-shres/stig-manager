@@ -8,7 +8,7 @@ let _this = this
 /**
 Generalized queries for asset(s).
 **/
-exports.queryAssets = async function (inProjection = [], inPredicates = {}, elevate = false, userObject) {
+exports.queryAssets = async function (inProjection = [], inPredicates = {}, elevate, userObject) {
   const columns = [
     'CAST(a.assetId as char) as assetId',
     'a.name',
@@ -226,7 +226,7 @@ exports.queryAssets = async function (inProjection = [], inPredicates = {}, elev
   return (rows)
 }
 
-exports.queryStigsByAsset = async function (inPredicates = {}, elevate = false, userObject) {
+exports.queryStigsByAsset = async function (inPredicates = {}, elevate, userObject) {
   const columns = [
     'distinct sa.benchmarkId', 
     `concat('V', rev.version, 'R', rev.release) as revisionStr`, 
@@ -267,7 +267,7 @@ exports.queryStigsByAsset = async function (inPredicates = {}, elevate = false, 
   return (rows)
 }
 
-exports.queryUsersByAssetStig = async function (inPredicates = {}, elevate = false, userObject) {
+exports.queryUsersByAssetStig = async function (inPredicates = {}, elevate, userObject) {
   const columns = [
     'CAST(ud.userId as char) as userId',
     'ud.username'
@@ -388,7 +388,7 @@ exports.addOrUpdateAsset = async function ( {writeAction, assetId, body, project
         }
       }
       else {
-        throw('Invalid writeAction')
+        throw new Error('Invalid writeAction')
       }
   
       // Process stigs, spec requires for CREATE/REPLACE not for UPDATE
@@ -464,7 +464,7 @@ exports.addOrUpdateAsset = async function ( {writeAction, assetId, body, project
     if (typeof connection !== 'undefined') {
       await connection.rollback()
     }
-    throw err
+    throw new Error({ status: 500, message: err.message, stack: err.stack }); // Always throw a consistent error object
   }
   finally {
     if (typeof connection !== 'undefined') {
@@ -478,7 +478,7 @@ exports.addOrUpdateAsset = async function ( {writeAction, assetId, body, project
     return row
   }
   catch (err) {
-    throw ( {status: 500, message: err.message, stack: err.stack} )
+    throw new Error( {status: 500, message: err.message, stack: err.stack} )
   }  
 }
 
@@ -520,7 +520,7 @@ exports.queryChecklist = async function (inProjection, inPredicates, elevate, us
     }
     if (inPredicates.revisionStr !== 'latest') {
       joins.splice(0, 1, 'revision rev')
-      const results = /V(\d+)R(\d+(\.\d+)?)/.exec(inPredicates.revisionStr)
+      const results =  dbUtils.extractVersionAndRelease(inPredicates.revisionStr)
       const revId =  `${inPredicates.benchmarkId}-${results[1]}-${results[2]}`
       predicates.statements.push('rev.revId = :revId')
       predicates.binds.revId = revId
@@ -776,7 +776,7 @@ exports.cklFromAssetStigs = async function cklFromAssetStigs (assetId, stigs, el
         revisionStrResolved = `V${resultGetBenchmarkId[0].version}R${resultGetBenchmarkId[0].release}`
       }
       else {
-        let revParse = /V(\d+)R(\d+(\.\d+)?)/.exec(revisionStr)
+        let revParse = dbUtils.extractVersionAndRelease(revisionStr)
         revId =  `${benchmarkId}-${revParse[1]}-${revParse[2]}`
         ;[resultGetBenchmarkId] = await connection.execute(sqlGetBenchmarkId, [revId])
       }
@@ -1021,7 +1021,7 @@ exports.cklbFromAssetStigs = async function cklbFromAssetStigs (assetId, stigs) 
         revisionStrResolved = `V${resultGetBenchmarkId[0].version}R${resultGetBenchmarkId[0].release}`
       }
       else {
-        let revParse = /V(\d+)R(\d+(\.\d+)?)/.exec(revisionStr)
+        let revParse = dbUtils.extractVersionAndRelease(revisionStr)
         revId =  `${benchmarkId}-${revParse[1]}-${revParse[2]}`
         ;[resultGetBenchmarkId] = await connection.execute(sqlGetBenchmarkId, [revId])
       }
@@ -1181,7 +1181,7 @@ exports.xccdfFromAssetStig = async function (assetId, benchmarkId, revisionStr =
       revisionStrResolved = `V${result[0].version}R${result[0].release}`
     }
     else {
-      let revParse = /V(\d+)R(\d+(\.\d+)?)/.exec(revisionStr)
+      let revParse = dbUtils.extractVersionAndRelease(revisionStr)
       revId = `${benchmarkId}-${revParse[1]}-${revParse[2]}`
       ;[result] = await connection.query(sqlGetRevision, [revId])
       revisionStrResolved = revisionStr

@@ -756,7 +756,7 @@ exports.getChecklistByCollectionStig = async function (collectionId, benchmarkId
     // Non-current revision
     if (revisionStr !== 'latest') {
       joins.splice(2, 1, 'left join revision rev on sa.benchmarkId=rev.benchmarkId')
-      const results = /V(\d+)R(\d+(\.\d+)?)/.exec(revisionStr)
+      const results = dbUtils.extractVersionAndRelease(revisionStr)
       predicates.statements.push('rev.version = :version')
       predicates.statements.push('rev.release = :release')
       predicates.binds.version = results[1]
@@ -1669,7 +1669,7 @@ exports.writeStigPropsByCollectionStig = async function ({collectionId, benchmar
     let version, release
     if (defaultRevisionStr) {
       if (defaultRevisionStr !== 'latest') {
-        const revisionParts = /V(\d+)R(\d+(\.\d+)?)/.exec(defaultRevisionStr)
+        const revisionParts = dbUtils.extractVersionAndRelease(defaultRevisionStr)
         version = revisionParts[1]
         release = revisionParts[2]
       }

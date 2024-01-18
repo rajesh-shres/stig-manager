@@ -24,10 +24,26 @@ module.exports.getConfiguration = async function getConfiguration (req, res, nex
 
 module.exports.setConfigurationItem = async function setConfigurationItem (req, res, next) {
   try {
-    //TODO: Implement
-  }
-  catch(err) {
-    next(err)
+    // Retrieve the configuration key and value from the request
+    const { key, value } = req.body;
+
+    // Validate the key and value 
+    if (!key || !value) {
+      throw new SmError(400, 'Missing required parameters: key and value');
+    }
+
+    // Call the OperationService.setConfigurationItem function to update the database
+    const result = await OperationService.setConfigurationItem(key, value);
+
+    // If successful, send a success response
+    if (result) {
+      res.status(200).json({ message: 'Configuration item updated successfully' });
+    } else {
+      // Handle any errors from OperationService.setConfigurationItem
+      res.status(500).json({ message: 'Failed to update configuration item' });
+    }
+  } catch (err) {
+    next(err);
   }
 }
 

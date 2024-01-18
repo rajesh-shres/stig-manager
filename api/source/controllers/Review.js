@@ -387,8 +387,6 @@ module.exports.deleteReviewMetadataKey = async function (req, res, next) {
 
 module.exports.postReviewBatch = async function (req, res, next) {
   try {
-    const { performance } = require('node:perf_hooks');
-  
     const collectionId = Collection.getCollectionIdAndCheckPermission(req, Security.ACCESS_LEVEL.Restricted)
     const collectionGrant = req.userObject.collectionGrants.find( g => g.collection.collectionId === collectionId )
     const collectionSettings = await CollectionService.getCollectionSettings(collectionId)
