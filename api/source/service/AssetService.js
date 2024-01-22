@@ -549,7 +549,7 @@ exports.queryChecklist = async function (inProjection, inPredicates, elevate, us
   }
 }
 
-exports.queryStigAssets = async function (inProjection = [], inPredicates = {}, elevate = false, userObject) {
+exports.queryStigAssets = async function (inProjection, inPredicates, elevate, userObject) {
   const columns = [
     'DISTINCT CAST(a.assetId as char) as assetId',
     'a.name',
@@ -1214,9 +1214,9 @@ exports.xccdfFromAssetStig = async function (assetId, benchmarkId, revisionStr =
         })  
       }
     }
-    const re = /^urn:/
+
     for (const key in metadata) {
-      if (re.test(key)) {
+      if (key.startsWith('urn:')) {
         fact.push({
           '@_name': key,
           '@_type': 'string',
@@ -1368,7 +1368,7 @@ exports.attachStigToAsset = async function( {assetId, benchmarkId, collectionId,
     if (typeof connection !== 'undefined') {
       await connection.rollback()
     }
-    throw ( {status: 500, message: err.message, stack: err.stack} )
+    throw new Error( {status: 500, message: err.message, stack: err.stack} )
   }
   finally {
     if (typeof connection !== 'undefined') {
@@ -1439,36 +1439,41 @@ exports.getUsersByAssetStig = async function (assetId, benchmarkId, elevate, use
 
 exports.getChecklistByAssetStig = async function(assetId, benchmarkId, revisionStr, format, elevate, userObject) {
   switch (format) {
-    case 'json':
+    case 'json': {   // Enclose in curly braces to create a block scope
       const rows = await _this.queryChecklist(null, {
         assetId: assetId,
         benchmarkId: benchmarkId,
         revisionStr: revisionStr
       }, elevate, userObject)
       return (rows)
-    case 'ckl':
+    }
+    case 'ckl': {
       const cklObject = await _this.cklFromAssetStigs(assetId, [{benchmarkId, revisionStr}], elevate, userObject)
       return (cklObject)
-    case 'cklb':
+    }
+    case 'cklb': {
       const cklbObject = await _this.cklbFromAssetStigs(assetId, [{benchmarkId, revisionStr}], elevate, userObject)
       return (cklbObject)
-    case 'xccdf':
+    }
+    case 'xccdf': {
       const xccdfObject = await _this.xccdfFromAssetStig(assetId, benchmarkId, revisionStr)
       return (xccdfObject)
+    }
   }
 }
 
 exports.getChecklistByAsset = async function(assetId, benchmarks, format, elevate, userObject) {
   switch (format) {
-    case 'ckl':
+    case 'ckl': {
       let cklObject = await _this.cklFromAssetStigs(assetId, benchmarks, elevate, userObject)
       return (cklObject)
-    case 'cklb':
+    }
+    case 'cklb': {
       let cklbObject = await _this.cklbFromAssetStigs(assetId, benchmarks, elevate, userObject)
       return (cklbObject)
     }
+  }
 }
-
 exports.getAssetsByStig = async function( collectionId, benchmarkId, labels, projection, elevate, userObject) {
   const rows = await _this.queryStigAssets(projection, {
     collectionId,

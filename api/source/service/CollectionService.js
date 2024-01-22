@@ -8,7 +8,7 @@ const _this = this
 /**
 Generalized queries for collection(s).
 **/
-exports.queryCollections = async function (inProjection = [], inPredicates = {}, elevate = false, userObject) { 
+exports.queryCollections = async function (inProjection = [], inPredicates = {}, elevate, userObject) { 
     const context = elevate ? dbUtils.CONTEXT_ALL : dbUtils.CONTEXT_USER
     
     const queries = []
@@ -213,7 +213,7 @@ exports.queryCollections = async function (inProjection = [], inPredicates = {},
     }
 }
 
-exports.queryFindings = async function (aggregator, inProjection = [], inPredicates = {}, userObject) {
+exports.queryFindings = async function (aggregator, inProjection, inPredicates, userObject) {
   let columns, groupBy, orderBy
   switch (aggregator) {
     case 'ruleId':
@@ -380,7 +380,7 @@ exports.queryFindings = async function (aggregator, inProjection = [], inPredica
   return (rows)
 }
 
-exports.queryStatus = async function (inPredicates = {}, userObject) {
+exports.queryStatus = async function (inPredicates, userObject) {
   let columns = [
     `distinct cast(a.assetId as char) as assetId`,
     'a.name as assetName',
