@@ -342,7 +342,7 @@ module.exports.putReviewMetadataValue = async function (req, res, next) {
     if ( collectionGrant ) {
       const userHasRule = await ReviewService.checkRuleByAssetUser( ruleId, assetId, req.userObject )
       if (userHasRule) {
-        let response = await ReviewService.putReviewMetadataValue( assetId, ruleId, key, value)
+        await ReviewService.putReviewMetadataValue( assetId, ruleId, key, value)
         res.status(204).send()
       }
       else {
@@ -369,7 +369,7 @@ module.exports.deleteReviewMetadataKey = async function (req, res, next) {
     if ( collectionGrant ) {
       const userHasRule = await ReviewService.checkRuleByAssetUser( ruleId, assetId, req.userObject )
       if (userHasRule) {
-        let response = await ReviewService.deleteReviewMetadataKey( assetId, ruleId, key, req.userObject)
+        await ReviewService.deleteReviewMetadataKey( assetId, ruleId, key, req.userObject)
         res.status(204).send()
       }
       else {

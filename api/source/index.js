@@ -225,10 +225,8 @@ const STIGMAN = {
 
 async function startServer(app) {
     let db = require(`./service/utils`)
-    let isNewDb
     try {
-      let authReturn
-      ;[authReturn, isNewDb] = await Promise.all([auth.initializeAuth(), db.initializeDatabase()])
+      await Promise.all([auth.initializeAuth(), db.initializeDatabase()])
     }
     catch (e) {
       logger.writeError('index', 'shutdown', {message:'Failed to setup dependencies', error: serializeError(e)});
